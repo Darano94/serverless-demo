@@ -29,9 +29,43 @@ functions:
       - http:
           path: /post
           method: post
+  getAllPosts:
+    handler: handler.getAllPosts
+    events:
+      - http:
+          path: /posts
+          method: get
+  getPosts:
+    handler: handler.getPosts
+    events:
+      - http:
+          path: /posts/{number}/
+          method: get
+  getPost:
+    handler: handler.getPost
+    events:
+      - http:
+          path: /post/{id}
+          method: get
+  updatePost:
+    handler: handler.updatePost
+    events:
+      - http:
+          path: /posts/{id}
+          method: put
+  deletePost:
+    handler: handler.deletePost
+    events:
+      - http:
+          path: /posts/{id}
+          method: delete
+
+
+
+
 resources:
   Resources:
-    TodosDynamoDbTable:
+    PostsTable:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
