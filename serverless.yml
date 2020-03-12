@@ -4,7 +4,6 @@ custom:
   settings:
     POSTS_TABLE: posts
 
-
 provider:
   name: aws
   runtime: nodejs12.x
@@ -59,10 +58,6 @@ functions:
       - http:
           path: /posts/{id}
           method: delete
-
-
-
-
 resources:
   Resources:
     PostsTable:

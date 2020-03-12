@@ -6,7 +6,7 @@ const db = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10'});
 
 const postsTable = process.env.POSTS_TABLE;
 
-//create a response
+//eine antwort erstellen
 function response(statusCode, message) {
     return{
         statusCode: statusCode,
@@ -14,7 +14,7 @@ function response(statusCode, message) {
     }
 }
 
-//sort by date
+//sort by date für die auflistung von allen Posts bzw der Pagination-funktion (getPosts/{number})
 function sortByDate(a,b){
     if(a.createdAt > b.createdAt)
         return -1;
@@ -26,6 +26,7 @@ function sortByDate(a,b){
 module.exports.createPost = (event, context, callback) => {
     const reqBody = JSON.parse(event.body);
 
+    //simple validation
     if(!reqBody.title || reqBody.title.trim() === '' || !reqBody.body || reqBody.body.trim() === '' ){
         return callback(null, response(400, {error: "Post muss einen Titel und einen Body haben"}))
     }
@@ -53,6 +54,7 @@ module.exports.getAllPosts = (event, context, callback) => {
     return db.scan({
         TableName: postsTable,
     }).promise().then(res => {
+        console.log('LOGGME', res.Items);
         callback(null, response(200, res.Items.sort(sortByDate)))
     }).catch(err => {
         callback(null, response(err.statusCode, err));
@@ -95,22 +97,23 @@ module.exports.updatePost = (event, context, callback) => {
     const id = event.pathParameters.id;
     const body = JSON.parse(event.body);
     const paramName = body.paramName;
-    const parammValue = body.paramValue;
+    const paramValue = body.paramValue;
 
     const params = {
         Key:{
             id: id
         },
         TableName: postsTable,
-        ConditionExpression: 'attribute_exists(id)',
-        UpdateExpression: 'set ' + paramName + ' = :v',
-        ExpressionAttributeValues : {
-            ':v': parammValue
+        ConditionExpression: 'attribute_exists(id)', //kondition die gegeben sein muss damit das update durchgeführt wird
+        UpdateExpression: 'set ' + paramName + ' = :v', //ausdruck der definiert welche attribute geändert werden, action performed auf ihnen , und new values
+        ExpressionAttributeValues : { //werte welche in updatexpression referenziert werden
+            ':v': paramValue
         },
-        ReturnValue: 'ALL_NEW'
+        ReturnValues: 'ALL_NEW' //was returnen wir - bevor oder nachdem geupdatet wurde.. ALL_NEW=> ALL_NEW - Returns all of the attributes of the item, as they appear after the UpdateItem operation.
     };
 
     return db.update(params).promise().then(res => {
+        console.log('RES',res);
         callback(null, response(200, res))
     }).catch(err => {
         callback(null, response(err.statusCode, err))
